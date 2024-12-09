@@ -25,16 +25,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # TODO # 4: Hash the password using SHA-256
-        # password = ???
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-        # Connect to the database
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # TODO # 2. Check if the user exists in the database and whether the password is correct
-        # Query to check the user
         cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
         result = cursor.fetchone() # fetchone() returns None if no record is found
 
@@ -50,9 +45,6 @@ def login():
         cursor.close()
         conn.close()
 
-        # if pass the check, redirect to the welcome page and store the username in the session
-        # session['username'] = username
-        # return redirect("/welcome") # commit this line after completing TODO # 2
         
     return render_template("login.html")
 
@@ -76,20 +68,15 @@ def signup():
         username = request.form['username']
         password = request.form['password']
 
-        # TODO # 4: Hash the password using SHA-256
-        # password = ???
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
 
-        # Connect to the database
         conn = get_db_connection()
         cursor = conn.cursor()
 
 
 
-        # TODO # 3: Add the query to insert a new user into the database
         try:
-            # Insert new user into the database
             cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
             conn.commit()
             flash("Account created successfully! Please log in.", "success")
