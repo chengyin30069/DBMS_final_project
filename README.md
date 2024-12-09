@@ -1,5 +1,7 @@
 # DBMS_final_project
 
+[Dataset link](https://www.kaggle.com/datasets/pa13lito/27m-movie-ratings/)
+
 ## Set up
 
 ### Download dependencies
