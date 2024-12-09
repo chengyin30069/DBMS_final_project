@@ -52,6 +52,5 @@ IGNORE 1 ROWS;
 CREATE TABLE users (
     userid INT PRIMARY KEY,
     username varchar(50) DEFAULT NULL,
-    usermail varchar(50) DEFAULT NULL,
     password varchar(50) DEFAULT NULL
 );
