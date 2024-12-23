@@ -61,6 +61,7 @@ def logout():
     session.pop('username', None)
     return redirect("/")
 
+
 # Signup
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -70,14 +71,25 @@ def signup():
 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-
+        
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        cur_userid = 0
+
+        if cur_userid == 0:
+            cursor.execute("SELECT MAX(userid) FROM users")
+            result = cursor.fetchone()
+            
+            if result[0] is None:
+                cur_userid = 300000
+            else:
+                cur_userid = result[0] + 1
+        else: cur_userid = cur_userid+1
 
 
         try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+            cursor.execute("INSERT INTO users (userid, username, password) VALUES (%s, %s, %s)", (cur_userid ,username, hashed_password))
             conn.commit()
             flash("Account created successfully! Please log in.", "success")
             return redirect("/")
