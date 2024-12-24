@@ -2,7 +2,7 @@ CREATE TABLE tags (
     userid INT NOT NULL,
     movieid INT NOT NULL,
     tag varchar(50) NOT NULL,
-    timestamp BIGINT
+    timestamp BIGINT,
 	PRIMARY KEY(userid, movieid, tag)
 );
 
@@ -42,7 +42,7 @@ IGNORE 1 ROWS;
 CREATE TABLE links (
     movieid INT PRIMARY KEY,
     imdbid varchar(10),
-    tmdbid INT,
+    tmdbid INT
 );
 
 LOAD DATA INFILE '/path/to/links.csv'
