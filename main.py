@@ -63,7 +63,7 @@ def logout():
 
 #Edit password
 
-@app.route("/profile", methods=["GET","POST"])
+@app.route("/change_passwd", methods=["GET","POST"])
 def profile():
     if 'username' not in session:
         return redirect("/")
@@ -95,7 +95,7 @@ def profile():
         cursor.close()
         conn.close()
 
-    return render_template("profile.html")
+    return render_template("change_passwd.html")
 
 # Signup
 @app.route("/signup", methods=["GET", "POST"])
