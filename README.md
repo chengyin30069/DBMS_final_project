@@ -31,3 +31,12 @@ GRANT ALL PRIVILEGES ON `DB_final` . * TO 'final_backend'@'localhost';
 
 Load dataset: Just use load.sql in the repo
 
+### start
+
+Just get in the directory and 
+
+```
+python3 main.py
+```
+
+The webpage will be at localhost:5000/
