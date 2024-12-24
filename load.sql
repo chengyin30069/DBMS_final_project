@@ -1,8 +1,9 @@
 CREATE TABLE tags (
-    userid INT PRIMARY KEY,
-    movieid INT PRIMARY KEY,
-    tag INT PRIMARY KEY,
+    userid INT NOT NULL,
+    movieid INT NOT NULL,
+    tag varchar(50) NOT NULL,
     timestamp BIGINT
+	PRIMARY KEY(userid, movieid, tag)
 );
 
 -- 匯入 tags.csv 的數據
@@ -13,10 +14,11 @@ LINES TERMINATED BY '\n'  -- 每行結束符
 IGNORE 1 ROWS;            -- 忽略表頭
 
 CREATE TABLE ratings (
-    userid INT PRIMARY KEY,
-    movieid INT PRIMARY KEY,
+    userid INT NOT NULL,
+    movieid INT NOT NULL,
     rating FLOAT,
-    timestamp BIGINT
+    timestamp BIGINT,
+	PRIMARY KEY(userid, movieid)
 );
 
 LOAD DATA INFILE '/path/to/ratings.csv'
