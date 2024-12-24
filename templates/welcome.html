@@ -62,11 +62,19 @@
 </head>
 <body>
     <div class="container">
-        <h2>Welcome, {{ session['username'] }}!</h2>
+		<h2>Welcome, {{ session['username'] }}!</h2>
         <p>We're glad to have you back!</p>
+        
+		<form action="/profile" method="get">
+            <button class="logout-btn" type="submit">Change Password</button>
+        </form>
+		
+		</br>
+
         <form action="/logout" method="get">
             <button class="logout-btn" type="submit">Log Out</button>
         </form>
+
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
