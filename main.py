@@ -68,6 +68,7 @@ def profile():
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
+        username = session['username']
         oldpasswd = request.form['oldpassword']
         n1 = request.form['n1password']
         n2 = request.form['n2password']
