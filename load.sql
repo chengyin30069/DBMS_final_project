@@ -21,6 +21,8 @@ CREATE TABLE ratings (
 	PRIMARY KEY(userid, movieid)
 );
 
+
+
 LOAD DATA INFILE '/path/to/ratings.csv'
 INTO TABLE ratings
 FIELDS TERMINATED BY ','  
