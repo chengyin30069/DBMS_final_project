@@ -83,17 +83,17 @@ def profile():
 
         if result and result[0] == oldpasswd:
             if n1 == n2:
-                n1 = haslib.sha256(n1.encode()).hexdigest()
-                cursor.execut("UPDATE users SET password = n1 WHERE username = %s", (username,))
+                n1 = hashlib.sha256(n1.encode()).hexdigest()
+                cursor.execute("UPDATE users SET password = %s WHERE username = %s", (n1, username, ))
+                conn.commit()
             else:
                 flash("Invalid old password or new password is not identical.", "danger")
         
         else:
             flash("Invalid old password or new password is not identical.", "danger")
-
-        con.close()
+        
         cursor.close()
-
+        conn.close()
 
     return render_template("profile.html")
 
