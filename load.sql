@@ -1,3 +1,6 @@
+--let mysql turn off strict mode
+SET sql_mode = '';
+
 CREATE TABLE tags (
     userid INT NOT NULL,
     movieid INT NOT NULL,
