@@ -86,6 +86,7 @@ def profile():
                 n1 = hashlib.sha256(n1.encode()).hexdigest()
                 cursor.execute("UPDATE users SET password = %s WHERE username = %s", (n1, username, ))
                 conn.commit()
+                return redirect("welcome")
             else:
                 flash("Invalid old password or new password is not identical.", "danger")
         
