@@ -85,7 +85,7 @@ def signup():
                 cur_userid = 300000
             else:
                 cur_userid = result[0] + 1
-        else: cur_userid = cur_userid+1
+        else: cur_userid = cur_userid + 1
 
 
         try:
