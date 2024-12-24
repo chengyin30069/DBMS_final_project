@@ -61,6 +61,40 @@ def logout():
     session.pop('username', None)
     return redirect("/")
 
+#Edit password
+
+@app.route("/profile", methods=["GET","POST"])
+def profile():
+    if 'username' not in session:
+        return redirect("/")
+    if request.method == "POST":
+        oldpasswd = request.form['oldpassword']
+        n1 = request.form['n1password']
+        n2 = request.form['n2password']
+
+        oldpasswd = hashlib.sha256(oldpasswd.encode()).hexdigest()
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
+        result = cursor.fetchone() # fetchone() returns None if no record is found
+
+        if result and result[0] == oldpasswd:
+            if n1 == n2:
+                n1 = haslib.sha256(n1.encode()).hexdigest()
+                cursor.execut("UPDATE users SET password = n1 WHERE username = %s", (username,))
+            else:
+                flash("Invalid old password or new password is not identical.", "danger")
+        
+        else:
+            flash("Invalid old password or new password is not identical.", "danger")
+
+        con.close()
+        cursor.close()
+
+
+    return render_template("profile.html")
 
 # Signup
 @app.route("/signup", methods=["GET", "POST"])
