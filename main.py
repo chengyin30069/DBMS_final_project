@@ -107,77 +107,79 @@ def profile():
 
 @app.route("/edit_tags", methods=["GET", "POST"])
 def create():
-if request.method == "POST":
-    movie=request.form['movie']
-    option=request.form['option']
-    username=session['username']
-    tag=request.form['tag']
-    # Check if tag match the type we want
-    if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
-        flash("Invalid character(s) in your tag!",  "danger")
-        return redirect("/edit_tags")
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        # whether user exists
-        cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
-        result1 = cursor.fetchone() 
-        if result1==None:
-            flash("User does not exist",  "danger")
-            return redirect("/")
-        userid=result1[0]
-        # whether movie exists
-        cursor.execute("SELECT movieid FROM movies WHERE title=%s", (movie,))
-        result2 = cursor.fetchone() 
-        if result2==None:
-            flash("Movie does not exist",  "danger")
+    if 'username' not in session:
+        return redirect("/")
+    if request.method == "POST":
+        movie=request.form['movie']
+        option=request.form['option']
+        username=session['username']
+        tag=request.form['tag']
+        # Check if tag match the type we want
+        if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
+            flash("Invalid character(s) in your tag!",  "danger")
             return redirect("/edit_tags")
-        movieid=result2[0]
-        if option == "add":
-            # whether tag already exists
-            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-            result3=cursor.fetchone()
-            if result3[0]!=0: 
-                flash("Tag already existed",  "danger")
-                return return redirect("/edit_tags")
-            try:
-                # Insert new tag into the database
-                cursor.execute("INSERT INTO tags (userid,movieid,tag) VALUES (%d,%d,%s)", (userid,movieid,tag))
-                conn.commit()
-                flash("Tag created successfully!", "success")
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            # whether user exists
+            cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+            result1 = cursor.fetchone() 
+            if result1==None:
+                flash("User does not exist",  "danger")
+                return redirect("/")
+            userid=result1[0]
+            # whether movie exists
+            cursor.execute("SELECT movieid FROM movies WHERE title=%s", (movie,))
+            result2 = cursor.fetchone() 
+            if result2==None:
+                flash("Movie does not exist",  "danger")
                 return redirect("/edit_tags")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-            finally:
-                cursor.close()
-                conn.close()
-                return render_template("edit_tags.html")
-        elif option == "delete":
-            # whether tag exists
-            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-            result3=cursor.fetchone()
-            if result3[0]==0: 
-                flash("Tag never exists",  "danger")
-                return return redirect("/edit_tags")
-            try:
-                # Delete tag into the database
-                cursor.execute("DELETE FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-                conn.commit()
-                flash("Tag deleted successfully!", "success")
+            movieid=result2[0]
+            if option == "add":
+                # whether tag already exists
+                cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+                result3=cursor.fetchone()
+                if result3[0]!=0: 
+                    flash("Tag already existed",  "danger")
+                    return redirect("/edit_tags")
+                try:
+                    # Insert new tag into the database
+                    cursor.execute("INSERT INTO tags (userid,movieid,tag) VALUES (%d,%d,%s)", (userid,movieid,tag))
+                    conn.commit()
+                    flash("Tag created successfully!", "success")
+                    return redirect("/edit_tags")
+                except mysql.connector.Error as err:
+                    flash(f"Error: {err}", "danger")
+                finally:
+                    cursor.close()
+                    conn.close()
+                    return render_template("edit_tags.html")
+            elif option == "delete":
+                # whether tag exists
+                cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+                result3=cursor.fetchone()
+                if result3[0]==0: 
+                    flash("Tag never exists",  "danger")
+                    return redirect("/edit_tags")
+                try:
+                    # Delete tag into the database
+                    cursor.execute("DELETE FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+                    conn.commit()
+                    flash("Tag deleted successfully!", "success")
+                    return redirect("/edit_tags")
+                except mysql.connector.Error as err:
+                    flash(f"Error: {err}", "danger")
+                finally:
+                    cursor.close()
+                    conn.close()
+                    return render_template("edit_tags.html")
+            else:
+                flash("Please enter \"add\" or \"delete\"",  "danger")
                 return redirect("/edit_tags")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-            finally:
-                cursor.close()
-                conn.close()
-                return render_template("edit_tags.html")
-        else:
-            flash("Please enter \"add\" or \"delete\"",  "danger")
-            return redirect("/edit_tags")
-    finally:
-        cursor.close()
-        conn.close()
-return render_template("edit_tags.html")
+        finally:
+            cursor.close()
+            conn.close()
+    return render_template("edit_tags.html")
     
 # Signup
 
