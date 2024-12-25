@@ -133,6 +133,12 @@
             <button type="submit" class="login-btn">Change Password</button>
         </form>
 
+		</br>
+
+		<form action="/welcome" method="get">
+            <button class="login-btn" type="submit">Back</button>
+        </form>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-messages">
