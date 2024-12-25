@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, flash, session
 import mysql.connector
 import hashlib
+import re # for detecting tags
 
 # Flask App Initialization
 app = Flask(__name__)
@@ -15,10 +16,12 @@ db_config = {
 }
 
 # Database Connection
+
 def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 # Login Page
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -49,6 +52,7 @@ def login():
     return render_template("login.html")
 
 # Welcome Page
+
 @app.route("/welcome")
 def welcome():
     if 'username' not in session:
@@ -56,6 +60,7 @@ def welcome():
     return render_template("welcome.html")
 
 # Logout
+
 @app.route("/logout")
 def logout():
     session.pop('username', None)
@@ -98,7 +103,84 @@ def profile():
 
     return render_template("change_passwd.html")
 
+#Edit tags
+
+@app.route("/edit_tags", methods=["GET", "POST"])
+def create():
+if request.method == "POST":
+    movie=request.form['movie']
+    option=request.form['option']
+    username=session['username']
+    tag=request.form['tag']
+    # Check if tag match the type we want
+    if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
+        flash("Invalid character(s) in your tag!",  "danger")
+        return redirect("/edit_tags")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # whether user exists
+        cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+        result1 = cursor.fetchone() 
+        if result1==None:
+            flash("User does not exist",  "danger")
+            return redirect("/")
+        userid=result1[0]
+        # whether movie exists
+        cursor.execute("SELECT movieid FROM movies WHERE title=%s", (movie,))
+        result2 = cursor.fetchone() 
+        if result2==None:
+            flash("Movie does not exist",  "danger")
+            return redirect("/edit_tags")
+        movieid=result2[0]
+        if option == "add":
+            # whether tag already exists
+            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+            result3=cursor.fetchone()
+            if result3[0]!=0: 
+                flash("Tag already existed",  "danger")
+                return return redirect("/edit_tags")
+            try:
+                # Insert new tag into the database
+                cursor.execute("INSERT INTO tags (userid,movieid,tag) VALUES (%d,%d,%s)", (userid,movieid,tag))
+                conn.commit()
+                flash("Tag created successfully!", "success")
+                return redirect("/edit_tags")
+            except mysql.connector.Error as err:
+                flash(f"Error: {err}", "danger")
+            finally:
+                cursor.close()
+                conn.close()
+                return render_template("edit_tags.html")
+        elif option == "delete":
+            # whether tag exists
+            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+            result3=cursor.fetchone()
+            if result3[0]==0: 
+                flash("Tag never exists",  "danger")
+                return return redirect("/edit_tags")
+            try:
+                # Delete tag into the database
+                cursor.execute("DELETE FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
+                conn.commit()
+                flash("Tag deleted successfully!", "success")
+                return redirect("/edit_tags")
+            except mysql.connector.Error as err:
+                flash(f"Error: {err}", "danger")
+            finally:
+                cursor.close()
+                conn.close()
+                return render_template("edit_tags.html")
+        else:
+            flash("Please enter \"add\" or \"delete\"",  "danger")
+            return redirect("/edit_tags")
+    finally:
+        cursor.close()
+        conn.close()
+return render_template("edit_tags.html")
+    
 # Signup
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -137,55 +219,9 @@ def signup():
     
     return render_template("signup.html")
 
-
 if __name__ == "__main__":
     app.run(debug=True)
     
 '''
-@app.route("/create", methods=["GET", "POST"])
-def create():
-    if request.method == "POST":
-        movie=request.form['movie']
-        option=request.form['option']
-        username=session['username']
-        if option == "tag":
-            tag=request.form['third_option']
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            query1="SELECT userid FROM users WHERE username=%s"
-            values1=(username,)
-            cursor.execute(query1,values1)
-            result1 = cursor.fetchone() 
-            if result1==None:
-                flash("User does not exist","error")
-                return redirect("/")
-            userid=result1[0]
-            query2="SELECT movieid FROM movies WHERE title=%s"
-            values2=(movie,)
-            cursor.execute(query2,values2)
-            result2 = cursor.fetchone() 
-            if result2==None:
-                flash("Movie does not exist","error")
-                return redirect("/create")
-            movieid=result2[0]
-            try:
-                # Insert new tag into the database
-                query3="INSERT INTO tags (userid,movieid,tag) VALUES (%d,%d,%s)"
-                values3=(userid,movieid,tag)
-                cursor.execute(query3,values3)
-                conn.commit()
-                flash("Tag created successfully!", "success")
-                return redirect("/create")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-            finally:
-                cursor.close()
-                conn.close()
-                return render_template("create.html")
-        elif option == "rating":
-            print(NOTHING)
-        else:
-            flash("Please enter \"tag\" or \"rating\"","error")
-            return redirect("/create")
-    return render_template("create.html")
+    
 '''
