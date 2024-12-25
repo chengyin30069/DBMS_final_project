@@ -61,5 +61,17 @@ IGNORE 1 ROWS;
 CREATE TABLE users (
     userid INT PRIMARY KEY,
     username varchar(50) DEFAULT NULL,
-    password varchar(200) DEFAULT NULL
+    `password` varchar(200) DEFAULT NULL
 );
+
+--for approving the speed of query with rating
+CREATE TABLE total_ratings (
+    movieid INT PRIMARY KEY NOT NULL,
+    rating_count INT DEFAULT 0,
+    rating_sum FLOAT DEFAULT 0
+);
+
+INSERT INTO total_ratings (movieid,rating_count,rating_sum)
+SELECT movieid, COUNT(rating) as rating_count,SUM(rating) as rating_sum
+FROM ratings
+GROUP BY movieid;
