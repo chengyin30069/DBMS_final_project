@@ -68,10 +68,13 @@ def movie():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    
+    cursor.execute("SELECT title, mv.movieid, avg_rating, genres (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
+    movies = cursor.fetchall()
 
-    movies = cursor.execute("SELECT title, mv.movieid, avg_rating, genres (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
-    return render_template("movie.html", )
+    cursor.close()
+    conn.close
+
+    return render_template("movie.html", movies=movies)
 
 # Logout
 
