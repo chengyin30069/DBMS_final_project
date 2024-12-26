@@ -2,6 +2,12 @@
 
 [Dataset link](https://www.kaggle.com/datasets/pa13lito/27m-movie-ratings/)
 
+## Todo
+
+- [ ] edit tag frontend
+- [ ] edit rating frontend
+- [ ] individual movie page (front+back)
+
 ## Set up
 
 ### Download dependencies
