@@ -60,15 +60,15 @@ def welcome():
     return render_template("welcome.html")
 
 # Movie Page
-@app.route("/movie", methods=["GET"])
+@app.route("/movie", methods=["GET", "POST"])
 def movie():
     if 'username' not in session:
         return redirect("/")
 
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT title, mv.movieid, avg_rating, genres (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
+    cursor.execute("SELECT title, mv.movieid, avg_rating, genres FROM (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
     movies = cursor.fetchall()
 
     cursor.close()
