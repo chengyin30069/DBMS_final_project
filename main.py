@@ -68,7 +68,7 @@ def movie():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT title, mv.movieid, avg_rating, genres FROM (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
+    cursor.execute("SELECT title, mv.movieid, avg_rating, genres FROM (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 10)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
     movies = cursor.fetchall()
 
     cursor.close()
