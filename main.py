@@ -59,6 +59,20 @@ def welcome():
         return redirect("/")
     return render_template("welcome.html")
 
+# Movie Page
+@app.route("/movie", methods=["GET"])
+def movie():
+    if 'username' not in session:
+        return redirect("/")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    
+
+    movies = cursor.execute("SELECT title, mv.movieid, avg_rating, genres (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 5)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
+    return render_template("movie.html", )
+
 # Logout
 
 @app.route("/logout")
