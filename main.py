@@ -246,6 +246,12 @@ def edit_ratings():
                     SET rating_count=rating_count+1, rating_sum=rating_sum+%s
                     WHERE movieid=%s
                 """, (rating, movieid))
+                # update avg_rating in 2nd step
+                cursor.execute("""
+                    UPDATE total_ratings
+                    SET avg_rating=rating_sum/rating_count
+                    WHERE movieid=%s
+                """, (rating, movieid))
                 conn.commit()
                 flash("Rating created successfully!", "success")
                 return redirect("/edit_ratings")
@@ -270,6 +276,12 @@ def edit_ratings():
                     UPDATE total_ratings
                     SET rating_count=rating_count-1, rating_sum=rating_sum-%s
                     WHERE movieid=%s
+                """, (rating, movieid))
+                # update avg_rating in 2nd step
+                cursor.execute("""
+                    UPDATE total_ratings
+                    SET avg_rating = CASE WHEN rating_count > 0 THEN rating_sum / rating_count ELSE 0 END
+                    WHERE movieid = %s;
                 """, (rating, movieid))
                 conn.commit()
                 flash("Rating deleted successfully!", "success")

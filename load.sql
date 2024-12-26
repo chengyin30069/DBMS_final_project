@@ -68,10 +68,11 @@ CREATE TABLE users (
 CREATE TABLE total_ratings (
     movieid INT PRIMARY KEY NOT NULL,
     rating_count INT DEFAULT 0,
-    rating_sum FLOAT DEFAULT 0
+    rating_sum FLOAT DEFAULT 0,
+    avg_rating FLOAT DEFAULT 0
 );
 
-INSERT INTO total_ratings (movieid,rating_count,rating_sum)
-SELECT movieid, COUNT(rating) as rating_count,SUM(rating) as rating_sum
+INSERT INTO total_ratings (movieid,rating_count,rating_sum,avg_rating)
+SELECT movieid, COUNT(rating) as rating_count, SUM(rating) as rating_sum, (SUM(rating)/COUNT(rating)) as avg_rating
 FROM ratings
 GROUP BY movieid;
