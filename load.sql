@@ -36,13 +36,14 @@ IGNORE 1 ROWS;
 
 CREATE TABLE movies (
     movieid INT PRIMARY KEY,
-    title varchar(100),
+    title varchar(200),
     genres varchar(100)
 );
 
 LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
 INTO TABLE movies
 FIELDS TERMINATED BY ','  
+ENCLOSED BY '"'
 LINES TERMINATED BY '\n'  
 IGNORE 1 ROWS;            
 
@@ -64,7 +65,7 @@ CREATE TABLE users (
     `password` varchar(200) DEFAULT NULL
 );
 
---for approving the speed of query with rating
+-- for approving the speed of query with rating
 CREATE TABLE total_ratings (
     movieid INT PRIMARY KEY NOT NULL,
     rating_count INT DEFAULT 0,
