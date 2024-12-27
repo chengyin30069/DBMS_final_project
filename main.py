@@ -64,15 +64,21 @@ def home():
 def movie():
     if 'username' not in session:
         return redirect("/")
-
+    search_query = request.args.get('q', '')
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    try:
+        if search_query:  # If there is a search query, filter movies by title
+            query = "SELECT title, mv.movieid, avg_rating, genres FROM(SELECT movieid, title, genres FROM movies WHERE title LIKE %s)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid"
+            cursor.execute(query, (f"%{search_query}%",))
+        else:
+            cursor.execute("SELECT title, mv.movieid, avg_rating, genres FROM (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 10)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
+    
+        movies = cursor.fetchall()
 
-    cursor.execute("SELECT title, mv.movieid, avg_rating, genres FROM (SELECT movieid, title, genres FROM movies ORDER BY RAND( ) LIMIT 10)AS mv, total_ratings WHERE mv.movieid=total_ratings.movieid")
-    movies = cursor.fetchall()
-
-    cursor.close()
-    conn.close
+    finally:
+        cursor.close()
+        conn.close
 
     return render_template("movie.html", movies=movies)
 
