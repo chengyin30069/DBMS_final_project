@@ -50,6 +50,15 @@
             text-decoration: none;
             color: #007BFF;
         }
+		.links a {
+            text-decoration: none;
+            color: #007BFF;
+            display: block;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +80,16 @@
                 <p>No tags available for this movie.</p>
             {% endif %}
         </div>
+		<div class="links">
+			<h2>External Links:</h2>
+            <a href="https://movielens.org/movies/{{ movieid }}" target="_blank">MovieLens</a>
+            {% if movie.imdbid %}
+                <a href="http://www.imdb.com/title/{{ movie.imdbid }}/" target="_blank">IMDb</a>
+            {% endif %}
+            {% if movie.tmdbid %}
+                <a href="https://www.themoviedb.org/movie/{{ movie.tmdbid }}" target="_blank">TMDb</a>
+            {% endif %}
+		</div>
         <a href="/movie">Back</a>
     </div>
 </body>

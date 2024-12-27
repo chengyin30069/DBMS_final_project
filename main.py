@@ -91,13 +91,15 @@ def movie_details(movieid):
 
     try:
         # Query to fetch the movie details by movieid
-        movie_query = "SELECT title, avg_rating, genres FROM(SELECT title, movieid, genres FROM movies WHERE movieid = %s)AS mv, (SELECT avg_rating FROM total_ratings WHERE movieid = %s)AS t_rt"
-        cursor.execute(movie_query, (movieid, movieid))
+        movie_query = "SELECT title, avg_rating, genres, imdbid, tmdbid FROM(SELECT title, movieid, genres FROM movies WHERE movieid = %s)AS mv, (SELECT avg_rating FROM total_ratings WHERE movieid = %s)AS t_rt, (SELECT imdbid, tmdbid FROM links WHERE movieid = %s)AS lk"
+        cursor.execute(movie_query, (movieid, movieid, movieid))
         movie = cursor.fetchone()  # Fetch the single movie record
+        
+        #Get tags
         tags_query = "SELECT tag FROM tags WHERE movieid = %s"
         cursor.execute(tags_query, (movieid, ))
         tags = [row['tag'] for row in cursor.fetchall()]
-
+        
     finally:
         cursor.close()
         conn.close()
