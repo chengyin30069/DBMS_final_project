@@ -4,7 +4,7 @@ SET sql_mode = '';
 CREATE TABLE tags (
     userid INT NOT NULL,
     movieid INT NOT NULL,
-    tag varchar(100) NOT NULL,
+    tag varchar(200) NOT NULL,
     timestamp BIGINT,
 	PRIMARY KEY(userid, movieid, tag)
 ) ;
