@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, flash, session
 import mysql.connector
 import hashlib
 import re # for detecting tags
-
+import time # for timestamp
 # Flask App Initialization
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -214,22 +214,19 @@ def profile():
 
     return render_template("change_passwd.html")
 
+# add tags (Last page should be "/movies/{movieid}")
 
-#Edit tags
-
-@app.route("/edit_tags", methods=["GET", "POST"])
-def edit_tags():
+@app.route("/add_tags/<int:movieid>", methods=["GET", "POST"])
+def add_tags():
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
-        movie=request.form['movie']
-        option=request.form['option']
         username=session['username']
         tag=request.form['tag']
         # Check if tag match the type we want
         if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
             flash("Invalid character(s) in your tag!",  "danger")
-            return redirect("/edit_tags")
+            return redirect(url_for("add_tags",movieid=movieid))
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
@@ -241,157 +238,255 @@ def edit_tags():
                 return redirect("/")
             userid=result1[0]
             # whether movie exists
-            cursor.execute("SELECT movieid FROM movies WHERE title=%s", (movie,))
+            cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
             result2 = cursor.fetchone() 
-            if result2==None:
+            if result2[0]==0:
                 flash("Movie does not exist",  "danger")
-                return redirect("/edit_tags")
-            movieid=result2[0]
-            if option == "add":
-                # whether tag already exists
-                cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-                result3=cursor.fetchone()
-                if result3[0]!=0: 
-                    flash("Tag already existed",  "danger")
-                    return redirect("/edit_tags")
-                try:
-                    # Insert new tag into the database
-                    cursor.execute("INSERT INTO tags (userid,movieid,tag) VALUES (%d,%d,%s)", (userid,movieid,tag))
-                    conn.commit()
-                    flash("Tag created successfully!", "success")
-                    return redirect("/edit_tags")
-                except mysql.connector.Error as err:
-                    flash(f"Error: {err}", "danger")
-                finally:
-                    return render_template("edit_tags.html")
-            elif option == "delete":
-                # whether tag exists
-                cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-                result3=cursor.fetchone()
-                if result3[0]==0: 
-                    flash("Tag never exists",  "danger")
-                    return redirect("/edit_tags")
-                try:
-                    # Delete tag into the database
-                    cursor.execute("DELETE FROM tags WHERE userid=%d AND movieid=%d and tag=%s", (userid,movieid,tag))
-                    conn.commit()
-                    flash("Tag deleted successfully!", "success")
-                    return redirect("/edit_tags")
-                except mysql.connector.Error as err:
-                    flash(f"Error: {err}", "danger")
-                finally:
-                    return render_template("edit_tags.html")
-            else:
-                flash("Please enter \"add\" or \"delete\"",  "danger")
-                return redirect("/edit_tags")
+                return redirect("/movie")
+            # whether tag already exists
+            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND movieid=%s and tag=%s", (userid,movieid,tag))
+            result3=cursor.fetchone()
+            if result3[0]!=0: 
+                flash("Tag already existed",  "danger")
+                return redirect(url_for("/add_tags",movieid=movieid))
+            # Insert new tag into the database
+            timestamp=int(time.time())
+            cursor.execute("INSERT INTO tags (userid,movieid,tag,timestamp) VALUES (%s,%s,%s,%s)", (userid,movieid,tag,timestamp))
+            conn.commit()
+            flash("Tag created successfully!", "success")
+            return redirect(url_for("/add_tags",movieid=movieid))
         finally:
             cursor.close()
             conn.close()
-    return render_template("edit_tags.html")
+            return render_template("add_tags.html",movieid=movieid)
+            
+    return render_template("add_tags.html",movieid=movieid)
+    
+#Edit tags (Last page should be "/my_tags")
 
-#Edit ratings
-
-@app.route("/edit_ratings", methods=["GET", "POST"])
-def edit_ratings():
+@app.route("/edit_tags/{bigint:timestamp}", methods=["GET", "POST"])
+def edit_tags():
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
-        movie=request.form['movie']
-        option=request.form['option']
         username=session['username']
-        rating=float(request.form['rating'])
-        # Check if rating on [0,5]
-        if not ((0<=rating<=5) and ((rating*10)%5)==0):
-            flash("Invalid rating!",  "danger")
-            return redirect("/edit_ratings")
+        tag=request.form['tag']
+        # Check if tag match the type we want
+        if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
+            flash("Invalid character(s) in your tag!",  "danger")
+            return redirect(url_for("/edit_tags",timestamp=timestamp))
         conn = get_db_connection()
         cursor = conn.cursor()
+        try:
+            # whether user exists
+            cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+            result1 = cursor.fetchone() 
+            if result1==None:
+                flash("User does not exist",  "danger")
+                return redirect("/")
+            userid=result1[0]
+            # whether tag exists
+            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
+            result3=cursor.fetchone()
+            if result3[0]==0: 
+                flash("Tag does not exist",  "danger")
+                return redirect("/my_tags")
+            try:
+                # edit tag into the database (update timestamp)
+                new_timestamp=int(time.time())
+                cursor.execute("""
+                    UPDATE tags
+                    SET tag=%s,timestamp=%s
+                    WHERE userid=%s AND timestamp=%s
+                """, (tag,new_timestamp,userid,timestamp))
+                conn.commit()
+                flash("Tag edited successfully!", "success")
+                return redirect("/my_tags")
+            except mysql.connector.Error as err:
+                flash(f"Error: {err}", "danger")
+                return render_template("edit_tags.html",timestamp=timestamp)
+        finally:
+            cursor.close()
+            conn.close()
+    return render_template("edit_tags.html",timestamp=timestamp)
+
+#delete tags (Last page should be "/my_tags")
+
+@app.route("/delete_tags/{bigint:timestamp}", methods=["GET"])
+def delete_tags():
+    if 'username' not in session:
+        return redirect("/")
+    username=session['username']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
         # whether user exists
         cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
         result1 = cursor.fetchone() 
         if result1==None:
             flash("User does not exist",  "danger")
+            return redirect("/")
+        userid=result1[0]
+        # whether tag exists
+        cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
+        result3=cursor.fetchone()
+        if result3[0]==0: 
+            flash("Tag does not exist",  "danger")
+            return redirect("/my_tags")
+        try:
+            # Delete tag into the database
+            cursor.execute("DELETE FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
+            conn.commit()
+            flash("Tag deleted successfully!", "success")
+            return redirect("/my_tags")
+        except mysql.connector.Error as err:
+            flash(f"Error: {err}", "danger")
+            return render_template("delete_tags.html",timestamp=timestamp)
+    finally:
+        cursor.close()
+        conn.close()
+    return render_template("delete_tags.html",timestamp=timestamp)
+    
+# add ratings (Last page should be "/movies/{movieid}")
+
+@app.route("/add_ratings/<int:movieid>", methods=["GET", "POST"])
+def add_ratings():
+    if 'username' not in session:
+        return redirect("/")
+    if request.method == "POST":
+        username=session['username']
+        rating=request.form['rating']
+        # Check if rating on [0,5]
+        if not ((0<=rating<=5) and ((rating*10)%5)==0):
+            flash("Invalid rating!",  "danger")
+            return redirect(url_for("/add_ratings",movieid=movieid))
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            # whether user exists
+            cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+            result1 = cursor.fetchone() 
+            if result1==None:
+                flash("User does not exist",  "danger")
+                return redirect("/")
+            userid=result1[0]
+            # whether movie exists
+            cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
+            result2 = cursor.fetchone() 
+            if result2[0]==0:
+                flash("Movie does not exist",  "danger")
+                return redirect("/movie")
+            # whether rating already exists
+            cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            result3=cursor.fetchone()
+            if result3[0]!=0: 
+                flash("rating already existed",  "danger")
+                return redirect(url_for("/movies",movieid=movieid))
+            # Insert new rating into the database
+            cursor.execute("INSERT INTO ratings (userid,movieid,rating) VALUES (%s,%s,%s)", (userid,movieid,rating))
+            conn.commit()
+            flash("rating created successfully!", "success")
+            return redirect(url_for("/movies",movieid=movieid))
+        finally:
             cursor.close()
             conn.close()
+    return render_template("add_ratings.html",movieid=movieid)
+    
+#Edit ratings (Last page should be "/my_ratings")
+
+@app.route("/edit_ratings/{int:movieid}", methods=["GET", "POST"])
+def edit_ratings():
+    if 'username' not in session:
+        return redirect("/")
+    if request.method == "POST":
+        username=session['username']
+        rating=request.form['rating']
+        # Check if rating on [0,5]
+        if not ((0<=rating<=5) and ((rating*10)%5)==0):
+            flash("Invalid rating!",  "danger")
+            return redirect(url_for("/edit_ratings",movieid=movieid))
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            # whether user exists
+            cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+            result1 = cursor.fetchone() 
+            if result1==None:
+                flash("User does not exist",  "danger")
+                return redirect("/")
+            userid=result1[0]
+            # whether movie exists
+            cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
+            result2 = cursor.fetchone() 
+            if result2[0]==0:
+                flash("Movie does not exist",  "danger")
+                return redirect("/movie")
+            # whether rating already exists
+            cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            result3=cursor.fetchone()
+            if result3[0]==0: 
+                flash("rating does not exist",  "danger")
+                return redirect("/my_ratings")
+            try:
+                # edit rating into the database
+                cursor.execute("""
+                    UPDATE ratings
+                    SET rating=%s
+                    WHERE userid=%s AND movieid=%s
+                """, (rating,userid,movieid))
+                conn.commit()
+                flash("rating edited successfully!", "success")
+                return redirect("/my_ratings")
+            except mysql.connector.Error as err:
+                flash(f"Error: {err}", "danger")
+                return render_template("edit_ratings.html",movieid=movieid)
+        finally:
+            cursor.close()
+            conn.close()
+    return render_template("edit_ratings.html",movieid=movieid)
+
+#delete ratings (Last page should be "/my_ratings")
+
+@app.route("/delete_ratings/{int:movieid}", methods=["GET"])
+def delete_ratings():
+    if 'username' not in session:
+        return redirect("/")
+    username=session['username']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # whether user exists
+        cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+        result1 = cursor.fetchone() 
+        if result1==None:
+            flash("User does not exist",  "danger")
             return redirect("/")
         userid=result1[0]
         # whether movie exists
-        cursor.execute("SELECT movieid FROM movies WHERE title=%s", (movie,))
+        cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
         result2 = cursor.fetchone() 
-        if result2==None:
+        if result2[0]==0:
             flash("Movie does not exist",  "danger")
-            cursor.close()
-            conn.close()
-            return redirect("/edit_ratings")
-        movieid=result2[0]
-        if option == "add":
-            try:
-                # whether rating already exists ((user,movie) pair is primary key=>match only one rating)
-                cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
-                result3=cursor.fetchone()
-                if result3[0]!=0: 
-                    flash("Rating already existed",  "danger")
-                    return redirect("/edit_ratings")
-                # Insert new rating into the database
-                cursor.execute("INSERT INTO ratings (userid,movieid,rating) VALUES (%s,%s,%s)", (userid,movieid,rating))
-                # update total_rating simultaneously
-                cursor.execute("""
-                    UPDATE total_ratings
-                    SET rating_count=rating_count+1, rating_sum=rating_sum+%s
-                    WHERE movieid=%s
-                """, (rating, movieid))
-                # update avg_rating in 2nd step
-                cursor.execute("""
-                    UPDATE total_ratings
-                    SET avg_rating=rating_sum/rating_count
-                    WHERE movieid=%s
-                """, (rating, movieid))
-                conn.commit()
-                flash("Rating created successfully!", "success")
-                return redirect("/edit_ratings")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-            finally:
-                cursor.close()
-                conn.close()
-                return render_template("edit_ratings.html")
-        elif option == "delete":
-            try:
-                # whether rating exists
-                cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s and rating=%s", (userid,movieid,rating))
-                result3=cursor.fetchone()
-                if result3[0]==0: 
-                    flash("Rating never exists",  "danger")
-                    return redirect("/edit_ratings")
-                # Delete rating into the database
-                cursor.execute("DELETE FROM ratings WHERE userid=%s AND movieid=%s and rating=%s", (userid,movieid,rating))
-                # update total_rating simultaneously
-                cursor.execute("""
-                    UPDATE total_ratings
-                    SET rating_count=rating_count-1, rating_sum=rating_sum-%s
-                    WHERE movieid=%s
-                """, (rating, movieid))
-                # update avg_rating in 2nd step
-                cursor.execute("""
-                    UPDATE total_ratings
-                    SET avg_rating = CASE WHEN rating_count > 0 THEN rating_sum / rating_count ELSE 0 END
-                    WHERE movieid = %s;
-                """, (rating, movieid))
-                conn.commit()
-                flash("Rating deleted successfully!", "success")
-                return redirect("/edit_ratings")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-            finally:
-                cursor.close()
-                conn.close()
-                return render_template("edit_ratings.html")
-        else:
-            flash("Invalid operation! Please enter \"add\" or \"delete\"",  "danger")
-            cursor.close()
-            conn.close()
-            return redirect("/edit_ratings")
-    return render_template("edit_ratings.html")
+            return redirect("/movie")
+        # whether rating already exists
+        cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+        result3=cursor.fetchone()
+        if result3[0]==0: 
+            flash("rating does not exist",  "danger")
+            return redirect("/my_ratings")
+        try:
+            # Delete rating into the database
+            cursor.execute("DELETE FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            conn.commit()
+            flash("rating deleted successfully!", "success")
+            return redirect("/my_ratings")
+        except mysql.connector.Error as err:
+            flash(f"Error: {err}", "danger")
+            return render_template("delete_ratings.html",movieid=movieid)
+    finally:
+        cursor.close()
+        conn.close()
+    return render_template("delete_ratings.html",movieid=movieid)
 
 # Signup
 
