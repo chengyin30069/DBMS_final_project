@@ -63,7 +63,7 @@ def home():
 def my_tags():
     if 'username' not in session:
         return redirect("/")
-    conn = get_db_conncetion()
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     username = session['username']
@@ -75,7 +75,7 @@ def my_tags():
         return redirect("/")
 
     try:
-        cursor.execute("SELECT tag, movies.title, timestamp FROM tags, movies WHERE userid=%s AND tags.movieid=movies.movieid", (userid, ))
+        cursor.execute("SELECT tag, tags.movieid, title, timestamp FROM tags, movies WHERE userid=%s AND tags.movieid=movies.movieid", (userid))
         tags=cursor.fetchall()
 
     finally:
@@ -83,6 +83,32 @@ def my_tags():
         conn.close()
 
     return render_template("my_tags.html", tags=tags)
+
+
+@app.route("/my_ratings", methods=["GET", "POST"])
+def my_ratings():
+    if 'username' not in session:
+        return redirect("/")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    username = session['username']
+
+    cursor.execute("SELECT userid FROM users WHERE username = %s", (username, ))
+    userid = cursor.fetchone()
+
+    if not userid:
+        return redirect("/")
+
+    try:
+        cursor.execute("SELECT rating, ratings.movieid, title, timestamp FROM ratings, movies WHERE userid=%s AND ratings.movieid=movies.movieid", (userid))
+        ratings=cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template("my_ratings.html", ratings=ratings)
 
 # Movie Page
 @app.route("/movie", methods=["GET", "POST"])
