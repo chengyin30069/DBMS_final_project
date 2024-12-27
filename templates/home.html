@@ -64,6 +64,12 @@
     <div class="container">
 		<h2>Welcome, {{ session['username'] }}!</h2>
         <p>We're glad to have you back!</p>
+
+		<form action="/movie" method="get">
+            <button class="logout-btn" type="submit">Movie list</button>
+        </form>
+
+		</br>
         
 		<form action="/change_passwd" method="get">
             <button class="logout-btn" type="submit">Change Password</button>
