@@ -59,6 +59,31 @@ def home():
         return redirect("/")
     return render_template("home.html")
 
+@app.route("/my_tags", methods=["GET", "POST"])
+def my_tags():
+    if 'username' not in session:
+        return redirect("/")
+    conn = get_db_conncetion()
+    cursor = conn.cursor()
+    
+    username = session['username']
+
+    cursor.execute("SELECT userid FROM users WHERE username = %s", (username, ))
+    userid = cursor.fetchone()
+
+    if not userid:
+        return redirect("/")
+
+    try:
+        cursor.execute("SELECT tag, movies.title, timestamp FROM tags, movies WHERE userid=%s AND tags.movieid=movies.movieid", (userid, ))
+        tags=cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template("my_tags.html", tags=tags)
+
 # Movie Page
 @app.route("/movie", methods=["GET", "POST"])
 def movie():
@@ -102,7 +127,7 @@ def movie_details(movieid):
         movie = cursor.fetchone()  # Fetch the single movie record
         
         #Get tags
-        tags_query = "SELECT tag FROM tags WHERE movieid = %s"
+        tags_query = "SELECT DISTINCT tag FROM tags WHERE movieid = %s"
         cursor.execute(tags_query, (movieid, ))
         tags = [row['tag'] for row in cursor.fetchall()]
         
@@ -162,6 +187,7 @@ def profile():
         conn.close()
 
     return render_template("change_passwd.html")
+
 
 #Edit tags
 
