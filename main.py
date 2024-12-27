@@ -91,7 +91,7 @@ def movie_details(movieid):
 
     try:
         # Query to fetch the movie details by movieid
-        movie_query = "SELECT title, avg_rating, genres, imdbid, tmdbid FROM(SELECT title, movieid, genres FROM movies WHERE movieid = %s)AS mv, (SELECT avg_rating FROM total_ratings WHERE movieid = %s)AS t_rt, (SELECT imdbid, tmdbid FROM links WHERE movieid = %s)AS lk"
+        movie_query = "SELECT movieid, title, avg_rating, genres, imdbid, tmdbid FROM(SELECT title, movieid, genres FROM movies WHERE movieid = %s)AS mv, (SELECT avg_rating FROM total_ratings WHERE movieid = %s)AS t_rt, (SELECT imdbid, tmdbid FROM links WHERE movieid = %s)AS lk"
         cursor.execute(movie_query, (movieid, movieid, movieid))
         movie = cursor.fetchone()  # Fetch the single movie record
         
