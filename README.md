@@ -6,7 +6,7 @@
 
 - [ ] edit tag frontend
 - [ ] edit rating frontend
-- [ ] individual movie page (front+back)
+- [x] individual movie page (front+back)
 
 ## Set up
 
