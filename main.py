@@ -38,7 +38,7 @@ def login():
 
         if result and result[0] == hashed_password:
             session['username'] = username
-            return redirect("/welcome")
+            return redirect("/home")
         
         else:
             flash("Invalid username or password.", "danger")
@@ -53,11 +53,11 @@ def login():
 
 # Welcome Page
 
-@app.route("/welcome")
-def welcome():
+@app.route("/home")
+def home():
     if 'username' not in session:
         return redirect("/")
-    return render_template("welcome.html")
+    return render_template("home.html")
 
 # Movie Page
 @app.route("/movie", methods=["GET", "POST"])
@@ -75,6 +75,41 @@ def movie():
     conn.close
 
     return render_template("movie.html", movies=movies)
+
+@app.route("/404")
+def not_found():
+    if 'username' not in session:
+        return redirect("/")
+    return render_template("404.html")
+
+@app.route('/movie/<int:movieid>')
+def movie_details(movieid):
+    # Connect to the database
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Query to fetch the movie details by movieid
+        movie_query = "SELECT title, avg_rating, genres FROM(SELECT title, movieid, genres FROM movies WHERE movieid = %s)AS mv, (SELECT avg_rating FROM total_ratings WHERE movieid = %s)AS t_rt"
+        cursor.execute(movie_query, (movieid, movieid))
+        movie = cursor.fetchone()  # Fetch the single movie record
+        tags_query = "SELECT tag FROM tags WHERE movieid = %s"
+        cursor.execute(tags_query, (movieid, ))
+        tags = [row['tag'] for row in cursor.fetchall()]
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    # If the movie is not found, return a 404 page
+    if not movie:
+        return redirect("/404")
+
+    movie['tags'] = tags
+
+    # Pass the movie details to the frontend
+    return render_template('movie_page.html', movie=movie)
 
 # Logout
 
@@ -108,7 +143,7 @@ def profile():
                 n1 = hashlib.sha256(n1.encode()).hexdigest()
                 cursor.execute("UPDATE users SET password = %s WHERE username = %s", (n1, username, ))
                 conn.commit()
-                return redirect("welcome")
+                return redirect("/home")
             else:
                 flash("Invalid old password or new password is not identical.", "danger")
         

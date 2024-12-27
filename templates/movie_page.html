@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ movie.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2em;
+            color: #007BFF;
+        }
+        .details p {
+            margin: 10px 0;
+        }
+        .details .genres {
+            font-style: italic;
+            color: #666;
+        }
+        .tags {
+            margin: 20px 0;
+        }
+        .tags ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tags li {
+            display: inline-block;
+            background-color: #007BFF;
+            color: #fff;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ movie.title }}</h1>
+        <div class="details">
+            <p><strong>Average Rating:</strong> {{ movie.avg_rating }}</p>
+            <p><strong>Genres:</strong> {{ movie.genres }}</p>
+        </div>
+        <div class="tags">
+            <h2>Tags:</h2>
+            {% if movie.tags %}
+                <ul>
+                    {% for tag in movie.tags %}
+                        <li>{{ tag }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No tags available for this movie.</p>
+            {% endif %}
+        </div>
+        <a href="/movie">Back</a>
+    </div>
+</body>
+</html>
