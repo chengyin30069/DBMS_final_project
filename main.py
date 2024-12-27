@@ -205,8 +205,6 @@ def edit_tags():
                 except mysql.connector.Error as err:
                     flash(f"Error: {err}", "danger")
                 finally:
-                    cursor.close()
-                    conn.close()
                     return render_template("edit_tags.html")
             elif option == "delete":
                 # whether tag exists
@@ -224,8 +222,6 @@ def edit_tags():
                 except mysql.connector.Error as err:
                     flash(f"Error: {err}", "danger")
                 finally:
-                    cursor.close()
-                    conn.close()
                     return render_template("edit_tags.html")
             else:
                 flash("Please enter \"add\" or \"delete\"",  "danger")
