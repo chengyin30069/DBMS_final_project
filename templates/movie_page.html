@@ -67,6 +67,7 @@
         <div class="details">
             <p><strong>Average Rating:</strong> {{ movie.avg_rating }}</p>
             <p><strong>Genres:</strong> {{ movie.genres }}</p>
+			<p><strong><a href="/edit_rating/{{ movie.movieid }}">Rate this movie</a></strong></p>
         </div>
         <div class="tags">
             <h2>Tags:</h2>
@@ -79,6 +80,7 @@
             {% else %}
                 <p>No tags available for this movie.</p>
             {% endif %}
+			<strong><a href="/add_tags/{{ movie.movieid }}">Add tag</a></strong>
         </div>
 		<div class="links">
 			<h2>External Links:</h2>
