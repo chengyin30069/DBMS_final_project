@@ -79,7 +79,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for rating, title, movieid, timestamp in tags %}
+                    {% for rating, movieid, title, timestamp in ratings %}
                         <tr>
                             <td>{{ rating }}</td>
                             <td><a href="/movie/{{ movieid }}">{{ title }}</a></td>
