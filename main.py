@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash, session
+from flask import Flask, render_template, request, redirect, flash, session, url_for
 import mysql.connector
 import hashlib
 import re # for detecting tags
@@ -357,7 +357,8 @@ def add_ratings(movieid):
         username=session['username']
         rating=request.form['rating']
         # Check if rating on [0,5]
-        if not ((0<=rating<=5) and ((rating*10)%5)==0):
+        rating = float(rating)  # 嘗試將字串轉換為浮點數
+        if not ((0 <= rating <= 5) and ((rating * 10) % 5) == 0):
             flash("Invalid rating!",  "danger")
             return redirect(url_for("/add_ratings",movieid=movieid))
         conn = get_db_connection()
@@ -381,12 +382,13 @@ def add_ratings(movieid):
             result3=cursor.fetchone()
             if result3[0]!=0: 
                 flash("rating already existed",  "danger")
-                return redirect(url_for("/movies",movieid=movieid))
+                return redirect(url_for("movie_details",movieid=movieid));
+
             # Insert new rating into the database
             cursor.execute("INSERT INTO ratings (userid,movieid,rating) VALUES (%s,%s,%s)", (userid,movieid,rating))
             conn.commit()
             flash("rating created successfully!", "success")
-            return redirect(url_for("/movies",movieid=movieid))
+            return redirect("/my_ratings")
         finally:
             cursor.close()
             conn.close()
@@ -402,9 +404,10 @@ def edit_ratings(movieid):
         username=session['username']
         rating=request.form['rating']
         # Check if rating on [0,5]
+        rating=float(rating)
         if not ((0<=rating<=5) and ((rating*10)%5)==0):
             flash("Invalid rating!",  "danger")
-            return redirect(url_for("/edit_ratings",movieid=movieid))
+            return redirect(url_for("edit_ratings",movieid=movieid))
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
@@ -423,6 +426,8 @@ def edit_ratings(movieid):
                 return redirect("/movie")
             # whether rating already exists
             cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            # cursor.execute("DELETE FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            # conn.commit()
             result3=cursor.fetchone()
             if result3[0]==0: 
                 flash("rating does not exist",  "danger")

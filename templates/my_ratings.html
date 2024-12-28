@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tags</title>
+    <title>My Ratings</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,6 +23,15 @@
         h1 {
             font-size: 2em;
             color: #007BFF;
+            text-align: center;
+        }
+        .flash-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
             text-align: center;
         }
         table {
@@ -68,6 +77,17 @@
 </head>
 <body>
     <div class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <h1>My Ratings</h1>
         {% if ratings %}
             <table>
@@ -76,6 +96,7 @@
                         <th>Rating</th>
                         <th>Movie Title</th>
                         <th>Timestamp</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,7 +105,10 @@
                             <td>{{ rating }}</td>
                             <td><a href="/movie/{{ movieid }}">{{ title }}</a></td>
                             <td>{{ timestamp }}</td>
-							<td><a href="delete_ratings/{{ movieid }}">delete</a></td>
+                            <td>
+                                <a href="/edit_ratings/{{ movieid }}">Edit</a> | 
+                                <a href="/delete_ratings/{{ movieid }}">Delete</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

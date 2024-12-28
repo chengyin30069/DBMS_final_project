@@ -9,8 +9,7 @@ CREATE TABLE tags (
 	PRIMARY KEY(userid, movieid, tag)
 ) ;
 
--- 匯入 tags.csv 的數據
-LOAD DATA INFILE '/var/lib/mysql-files/tags.csv'
+LOAD DATA LOCAL INFILE './tags.csv'
 INTO TABLE tags
 FIELDS TERMINATED BY ','  -- 欄位分隔符
 ENCLOSED BY '"'
@@ -28,7 +27,7 @@ CREATE TABLE ratings (
 
 
 
-LOAD DATA INFILE '/var/lib/mysql-files/ratings.csv'
+LOAD DATA LOCAL INFILE './ratings.csv'
 INTO TABLE ratings
 FIELDS TERMINATED BY ','  
 LINES TERMINATED BY '\n'  
@@ -40,7 +39,7 @@ CREATE TABLE movies (
     genres varchar(100)
 );
 
-LOAD DATA INFILE '/var/lib/mysql-files/movies.csv'
+LOAD DATA LOCAL INFILE './movies.csv'
 INTO TABLE movies
 FIELDS TERMINATED BY ','  
 ENCLOSED BY '"'
@@ -53,7 +52,7 @@ CREATE TABLE links (
     tmdbid INT
 );
 
-LOAD DATA INFILE '/var/lib/mysql-files/links.csv'
+LOAD DATA LOCAL INFILE './links.csv'
 INTO TABLE links
 FIELDS TERMINATED BY ','  
 LINES TERMINATED BY '\n'  
