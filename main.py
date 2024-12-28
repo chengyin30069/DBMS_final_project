@@ -447,8 +447,8 @@ def edit_ratings():
 
 #delete ratings (Last page should be "/my_ratings")
 
-@app.route("/delete_ratings/{int:movieid}", methods=["GET"])
-def delete_ratings():
+@app.route("/delete_ratings/<int:movieid>", methods=["GET", "POST"])
+def delete_ratings(movieid):
     if 'username' not in session:
         return redirect("/")
     username=session['username']
