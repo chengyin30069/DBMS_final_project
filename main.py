@@ -217,7 +217,7 @@ def profile():
 # add tags (Last page should be "/movies/{movieid}")
 
 @app.route("/add_tags/<int:movieid>", methods=["GET", "POST"])
-def add_tags():
+def add_tags(movieid):
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
@@ -264,8 +264,8 @@ def add_tags():
     
 #Edit tags (Last page should be "/my_tags")
 
-@app.route("/edit_tags/{bigint:timestamp}", methods=["GET", "POST"])
-def edit_tags():
+@app.route("/edit_tags/<bigint:timestamp>", methods=["GET", "POST"])
+def edit_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
@@ -312,8 +312,8 @@ def edit_tags():
 
 #delete tags (Last page should be "/my_tags")
 
-@app.route("/delete_tags/{bigint:timestamp}", methods=["GET"])
-def delete_tags():
+@app.route("/delete_tags/<bigint:timestamp>", methods=["GET"])
+def delete_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
     username=session['username']
