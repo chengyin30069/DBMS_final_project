@@ -264,7 +264,7 @@ def add_tags(movieid):
     
 #Edit tags (Last page should be "/my_tags")
 
-@app.route("/edit_tags/<bigint:timestamp>", methods=["GET", "POST"])
+@app.route("/edit_tags/<int:timestamp>", methods=["GET", "POST"])
 def edit_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
@@ -312,7 +312,7 @@ def edit_tags(timestamp):
 
 #delete tags (Last page should be "/my_tags")
 
-@app.route("/delete_tags/<bigint:timestamp>", methods=["GET"])
+@app.route("/delete_tags/<int:timestamp>", methods=["GET"])
 def delete_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
