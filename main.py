@@ -350,7 +350,7 @@ def delete_tags():
 # add ratings (Last page should be "/movies/{movieid}")
 
 @app.route("/add_ratings/<int:movieid>", methods=["GET", "POST"])
-def add_ratings():
+def add_ratings(movieid):
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
@@ -394,8 +394,8 @@ def add_ratings():
     
 #Edit ratings (Last page should be "/my_ratings")
 
-@app.route("/edit_ratings/{int:movieid}", methods=["GET", "POST"])
-def edit_ratings():
+@app.route("/edit_ratings/<int:movieid>", methods=["GET", "POST"])
+def edit_ratings(movieid):
     if 'username' not in session:
         return redirect("/")
     if request.method == "POST":
