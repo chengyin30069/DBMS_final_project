@@ -27,7 +27,7 @@
             color: #4CAF50;
         }
 
-        .logout-btn {
+        .action-btn {
             display: inline-block;
             background-color: #4CAF50;
             color: white;
@@ -38,9 +38,10 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin: 10px 0;
         }
 
-        .logout-btn:hover {
+        .action-btn:hover {
             background-color: #45a049;
         }
 
@@ -62,25 +63,28 @@
 </head>
 <body>
     <div class="container">
-		<h2>Welcome, {{ session['username'] }}!</h2>
+        <h2>Welcome, {{ session['username'] }}!</h2>
         <p>We're glad to have you back!</p>
 
-		<form action="/movie" method="get">
-            <button class="logout-btn" type="submit">Movie list</button>
+        <form action="/movie" method="get">
+            <button class="action-btn" type="submit">Movie List</button>
         </form>
 
-		</br>
-        
-		<form action="/change_passwd" method="get">
-            <button class="logout-btn" type="submit">Change Password</button>
+        <form action="/my_ratings" method="get">
+            <button class="action-btn" type="submit">My Ratings</button>
         </form>
-		
-		</br>
+
+        <form action="/my_tags" method="get">
+            <button class="action-btn" type="submit">My Tags</button>
+        </form>
+
+        <form action="/change_passwd" method="get">
+            <button class="action-btn" type="submit">Change Password</button>
+        </form>
 
         <form action="/logout" method="get">
-            <button class="logout-btn" type="submit">Log Out</button>
+            <button class="action-btn" type="submit">Log Out</button>
         </form>
-
 
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

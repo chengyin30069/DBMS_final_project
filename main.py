@@ -222,7 +222,7 @@ def add_tags(movieid):
         return redirect("/")
     if request.method == "POST":
         username=session['username']
-        tag=request.form['tag']
+        tag=request.form['tags']
         # Check if tag match the type we want
         if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
             flash("Invalid character(s) in your tag!",  "danger")
@@ -248,67 +248,70 @@ def add_tags(movieid):
             result3=cursor.fetchone()
             if result3[0]!=0: 
                 flash("Tag already existed",  "danger")
-                return redirect(url_for("/add_tags",movieid=movieid))
+                return redirect(url_for("add_tags",movieid=movieid))
             # Insert new tag into the database
             timestamp=int(time.time())
             cursor.execute("INSERT INTO tags (userid,movieid,tag,timestamp) VALUES (%s,%s,%s,%s)", (userid,movieid,tag,timestamp))
             conn.commit()
             flash("Tag created successfully!", "success")
-            return redirect(url_for("/add_tags",movieid=movieid))
+            return redirect("/my_tags");
         finally:
             cursor.close()
             conn.close()
-            return render_template("add_tags.html",movieid=movieid)
-            
+            # return render_template("add_tags.html",movieid=movieid)
     return render_template("add_tags.html",movieid=movieid)
     
 #Edit tags (Last page should be "/my_tags")
-
 @app.route("/edit_tags/<int:timestamp>", methods=["GET", "POST"])
 def edit_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
+    
+    movieid = request.args.get('movieid', type=int)
+    
     if request.method == "POST":
-        username=session['username']
-        tag=request.form['tag']
-        # Check if tag match the type we want
+        username = session['username']
+        tag = request.form['tag']
+        movieid = request.form['movieid']
+
         if not re.fullmatch(r'[a-zA-Z0-9 ]*', tag):
-            flash("Invalid character(s) in your tag!",  "danger")
-            return redirect(url_for("/edit_tags",timestamp=timestamp))
+            flash("Invalid character(s) in your tag!", "danger")
+            return redirect(url_for("edit_tags", movieid=movieid, timestamp=timestamp))
+
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
-            # whether user exists
             cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
-            result1 = cursor.fetchone() 
-            if result1==None:
-                flash("User does not exist",  "danger")
+            result1 = cursor.fetchone()
+            if result1 is None:
+                flash("User does not exist", "danger")
                 return redirect("/")
-            userid=result1[0]
-            # whether tag exists
-            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
-            result3=cursor.fetchone()
-            if result3[0]==0: 
-                flash("Tag does not exist",  "danger")
+            
+            userid = result1[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND movieid=%s AND timestamp=%s", (userid, movieid, timestamp))
+            result3 = cursor.fetchone()
+            if result3[0] == 0:
+                flash("Tag does not exist", "danger")
                 return redirect("/my_tags")
-            try:
-                # edit tag into the database (update timestamp)
-                new_timestamp=int(time.time())
-                cursor.execute("""
-                    UPDATE tags
-                    SET tag=%s,timestamp=%s
-                    WHERE userid=%s AND timestamp=%s
-                """, (tag,new_timestamp,userid,timestamp))
-                conn.commit()
-                flash("Tag edited successfully!", "success")
-                return redirect("/my_tags")
-            except mysql.connector.Error as err:
-                flash(f"Error: {err}", "danger")
-                return render_template("edit_tags.html",timestamp=timestamp)
+            
+            new_timestamp = int(time.time())
+            cursor.execute("""
+                UPDATE tags
+                SET tag=%s, timestamp=%s
+                WHERE userid=%s AND movieid=%s AND timestamp=%s
+            """, (tag, new_timestamp, userid, movieid, timestamp))
+            conn.commit()
+            flash("Tag edited successfully!", "success")
+            return redirect("/my_tags")
+        except mysql.connector.Error as err:
+            flash(f"Error: {err}", "danger")
+            return render_template("edit_tags.html", movieid=movieid, timestamp=timestamp)
         finally:
             cursor.close()
             conn.close()
-    return render_template("edit_tags.html",timestamp=timestamp)
+
+    return render_template("edit_tags.html", movieid=movieid, timestamp=timestamp)
 
 #delete tags (Last page should be "/my_tags")
 
@@ -316,36 +319,33 @@ def edit_tags(timestamp):
 def delete_tags(timestamp):
     if 'username' not in session:
         return redirect("/")
-    username=session['username']
+    username = session['username']
+    movieid = request.args.get('movieid', type=int)
+
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # whether user exists
         cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
-        result1 = cursor.fetchone() 
-        if result1==None:
-            flash("User does not exist",  "danger")
+        result1 = cursor.fetchone()
+        if result1 == None:
+            flash("User does not exist", "danger")
             return redirect("/")
-        userid=result1[0]
-        # whether tag exists
-        cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
-        result3=cursor.fetchone()
-        if result3[0]==0: 
-            flash("Tag does not exist",  "danger")
+        userid = result1[0]
+
+        cursor.execute("SELECT COUNT(*) FROM tags WHERE userid=%s AND movieid=%s and timestamp=%s", (userid, movieid, timestamp))
+        result2 = cursor.fetchone()
+        if result2[0] == 0:
+            flash("Tag does not exist", "danger")
             return redirect("/my_tags")
-        try:
-            # Delete tag into the database
-            cursor.execute("DELETE FROM tags WHERE userid=%s AND timestamp=%s", (userid,timestamp))
-            conn.commit()
-            flash("Tag deleted successfully!", "success")
-            return redirect("/my_tags")
-        except mysql.connector.Error as err:
-            flash(f"Error: {err}", "danger")
-            return render_template("delete_tags.html",timestamp=timestamp)
+
+        cursor.execute("DELETE FROM tags WHERE userid=%s AND movieid=%s and timestamp=%s", (userid, movieid, timestamp))
+        conn.commit()
+        flash("Tag deleted successfully!", "success")
+        return redirect("/my_tags")
     finally:
         cursor.close()
         conn.close()
-    return render_template("delete_tags.html",timestamp=timestamp)
+
     
 # add ratings (Last page should be "/movies/{movieid}")
 
@@ -382,7 +382,7 @@ def add_ratings(movieid):
             result3=cursor.fetchone()
             if result3[0]!=0: 
                 flash("rating already existed",  "danger")
-                return redirect(url_for("movie_details",movieid=movieid));
+                return redirect(url_for("add_ratings",movieid=movieid));
 
             # Insert new rating into the database
             cursor.execute("INSERT INTO ratings (userid,movieid,rating) VALUES (%s,%s,%s)", (userid,movieid,rating))

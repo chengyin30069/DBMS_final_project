@@ -62,6 +62,22 @@
             font-style: italic;
             color: #666;
         }
+        .home-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .home-button button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #28a745; /* 綠色背景 */
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .home-button button:hover {
+            background-color: #218838; /* 深綠色背景 hover */
+        }
     </style>
 </head>
 <body>
@@ -84,6 +100,9 @@
         {% else %}
             <p>No movies found.</p>
         {% endif %}
+        <div class="home-button">
+            <a href="/home"><button>Go to Home</button></a>
+        </div>
     	<footer>
         	&copy; 2024 NYCU DB final project Team 29. All rights reserved.
     	</footer>

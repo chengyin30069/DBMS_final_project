@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Rating</title>
+    <title>Add Tags</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,7 +26,7 @@
         }
         h1 {
             font-size: 1.5em;
-            color: #007BFF;
+            color: #007BFF; /* 藍色標題 */
             margin-bottom: 20px;
         }
         form {
@@ -34,7 +34,7 @@
             flex-direction: column;
             gap: 15px;
         }
-        input[type="number"] {
+        input[type="text"] {
             padding: 10px;
             font-size: 1em;
             border: 1px solid #ccc;
@@ -44,20 +44,20 @@
         button {
             padding: 10px;
             font-size: 1em;
-            background-color: #007BFF;
+            background-color: #007BFF; /* 藍色按鈕 */
             color: #fff;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #0056b3; /* 深藍色按鈕 hover */
         }
         a {
             display: block;
             margin-top: 20px;
             text-decoration: none;
-            color: #007BFF;
+            color: #007BFF; /* 藍色連結 */
         }
         a:hover {
             text-decoration: underline;
@@ -75,7 +75,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Add Your Rating</h1>
+        <h1>Add Tags</h1>
 
         <!-- 顯示flash message -->
         {% with messages = get_flashed_messages() %}
@@ -88,11 +88,11 @@
             {% endif %}
         {% endwith %}
 
-        <!-- 新增評分表單 -->
-        <form action="/add_ratings/{{ movieid }}" method="POST">
-            <label for="rating">Rating (0.0 to 5.0 in 0.5 increments):</label>
-            <input type="number" id="rating" name="rating" step="0.5" min="0" max="5" required>
-            <button type="submit">Submit Rating</button>
+        <!-- 新增標籤表單 -->
+        <form action="/add_tags/{{ movieid }}" method="POST">
+            <label for="tags">Tags (separate by commas):</label>
+            <input type="text" id="tags" name="tags" placeholder="Enter tags" required>
+            <button type="submit">Submit Tags</button>
         </form>
         <a href="/movie/{{ movieid }}">Back to Movie</a>
     </div>

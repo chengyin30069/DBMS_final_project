@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Rating</title>
+    <title>Edit Tag</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,7 +34,7 @@
             flex-direction: column;
             gap: 15px;
         }
-        input[type="number"] {
+        input[type="text"] {
             padding: 10px;
             font-size: 1em;
             border: 1px solid #ccc;
@@ -62,25 +62,24 @@
         a:hover {
             text-decoration: underline;
         }
-        /* 顯示錯誤訊息的紅色樣式 */
         .flash-message {
             padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
             background-color: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Add Your Rating</h1>
+        <h1>Edit Your Tag</h1>
 
-        <!-- 顯示flash message -->
+        <!-- 顯示 flash 訊息 -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="flash-message">
+                <div class="flash-message {% if 'error' in messages[0] %}danger{% else %}success{% endif %}">
                     {% for message in messages %}
                         <p>{{ message }}</p>
                     {% endfor %}
@@ -88,11 +87,13 @@
             {% endif %}
         {% endwith %}
 
-        <!-- 新增評分表單 -->
-        <form action="/add_ratings/{{ movieid }}" method="POST">
-            <label for="rating">Rating (0.0 to 5.0 in 0.5 increments):</label>
-            <input type="number" id="rating" name="rating" step="0.5" min="0" max="5" required>
-            <button type="submit">Submit Rating</button>
+        <form action="/edit_tags/{{ timestamp }}" method="POST">
+            <label for="tag">Tag (e.g., Action, Drama, Comedy, etc.):</label>
+            <!-- 使用預設值填入當前的標籤 -->
+            <input type="text" id="tag" name="tag" value="{{ current_tag }}" required>
+            <!-- 隱藏欄位傳遞 movieid -->
+            <input type="hidden" name="movieid" value="{{ movieid }}">
+            <button type="submit">Update Tag</button>
         </form>
         <a href="/movie/{{ movieid }}">Back to Movie</a>
     </div>

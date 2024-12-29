@@ -55,15 +55,27 @@
             color: #007BFF;
             display: block;
         }
-        a {
-            text-decoration: none;
-            color: #007BFF;
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .flash-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .flash-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>{{ movie.title }}</h1>
+
+
         <div class="details">
             <p><strong>Average Rating:</strong> {{ movie.avg_rating }}</p>
             <p><strong>Genres:</strong> {{ movie.genres }}</p>
