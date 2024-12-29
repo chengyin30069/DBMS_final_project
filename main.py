@@ -10,9 +10,9 @@ app.secret_key = "your_secret_key"
 # Database Configuration
 db_config = {
     'host': 'localhost',  # Change this to your MySQL host
-    'user': 'final_backend',  # Change this to your MySQL username
-    'password': 'passwd',  # Change this to your MySQL password
-    'database': 'DB_final'  # Change this to your MySQL database name
+    'user': 'root',  # Change this to your MySQL username
+    'password': 'Ready1314!!!',  # Change this to your MySQL password
+    'database': 'final'  # Change this to your MySQL database name
 }
 
 # Database Connection
@@ -353,8 +353,32 @@ def delete_tags(timestamp):
 def add_ratings(movieid):
     if 'username' not in session:
         return redirect("/")
+    username=session['username']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # whether user exists
+        cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
+        result1 = cursor.fetchone() 
+        if result1==None:
+            flash("User does not exist",  "danger")
+            return redirect("/")
+        userid=result1[0]
+        # whether movie exists
+        cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
+        result2 = cursor.fetchone() 
+        if result2[0]==0:
+            flash("Movie does not exist",  "danger")
+            return redirect("/movie")
+        # whether rating already exists
+        cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+        result3=cursor.fetchone()
+        if result3[0]!=0: 
+            return redirect(url_for("edit_ratings",movieid=movieid));
+    finally:
+        cursor.close()
+        conn.close()
     if request.method == "POST":
-        username=session['username']
         rating=request.form['rating']
         # Check if rating on [0,5]
         rating = float(rating)  # 嘗試將字串轉換為浮點數
@@ -364,28 +388,20 @@ def add_ratings(movieid):
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
-            # whether user exists
-            cursor.execute("SELECT userid FROM users WHERE username=%s", (username,))
-            result1 = cursor.fetchone() 
-            if result1==None:
-                flash("User does not exist",  "danger")
-                return redirect("/")
-            userid=result1[0]
-            # whether movie exists
-            cursor.execute("SELECT COUNT(*) FROM movies WHERE movieid=%s", (movieid,))
-            result2 = cursor.fetchone() 
-            if result2[0]==0:
-                flash("Movie does not exist",  "danger")
-                return redirect("/movie")
-            # whether rating already exists
-            cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
-            result3=cursor.fetchone()
-            if result3[0]!=0: 
-                flash("rating already existed",  "danger")
-                return redirect(url_for("add_ratings",movieid=movieid));
-
             # Insert new rating into the database
             cursor.execute("INSERT INTO ratings (userid,movieid,rating) VALUES (%s,%s,%s)", (userid,movieid,rating))
+            # update total_rating simultaneously
+            cursor.execute("""
+                UPDATE total_ratings
+                SET rating_count=rating_count+1, rating_sum=rating_sum+%s
+                WHERE movieid=%s
+            """, (rating, movieid))
+            # update avg_rating in 2nd step
+            cursor.execute("""
+                UPDATE total_ratings
+                SET avg_rating=rating_sum/rating_count
+                WHERE movieid=%s
+            """, (movieid,))
             conn.commit()
             flash("rating created successfully!", "success")
             return redirect("/my_ratings")
@@ -425,13 +441,12 @@ def edit_ratings(movieid):
                 flash("Movie does not exist",  "danger")
                 return redirect("/movie")
             # whether rating already exists
-            cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
-            # cursor.execute("DELETE FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
-            # conn.commit()
+            cursor.execute("SELECT rating FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
             result3=cursor.fetchone()
-            if result3[0]==0: 
+            if result3[0]==None: 
                 flash("rating does not exist",  "danger")
                 return redirect("/my_ratings")
+            original_rating=result3[0]
             try:
                 # edit rating into the database
                 cursor.execute("""
@@ -439,6 +454,18 @@ def edit_ratings(movieid):
                     SET rating=%s
                     WHERE userid=%s AND movieid=%s
                 """, (rating,userid,movieid))
+                # update total_rating simultaneously
+                cursor.execute("""
+                    UPDATE total_ratings
+                    SET rating_sum=rating_sum+%s-%s
+                    WHERE movieid=%s
+                """, (rating, original_rating, movieid))
+                # update avg_rating in 2nd step
+                cursor.execute("""
+                    UPDATE total_ratings
+                    SET avg_rating=rating_sum/rating_count
+                    WHERE movieid=%s
+                """, (movieid,))
                 conn.commit()
                 flash("rating edited successfully!", "success")
                 return redirect("/my_ratings")
@@ -474,14 +501,27 @@ def delete_ratings(movieid):
             flash("Movie does not exist",  "danger")
             return redirect("/movie")
         # whether rating already exists
-        cursor.execute("SELECT COUNT(*) FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+        cursor.execute("SELECT rating FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
         result3=cursor.fetchone()
-        if result3[0]==0: 
+        if result3[0]==None: 
             flash("rating does not exist",  "danger")
             return redirect("/my_ratings")
+        original_rating=result3[0]
         try:
             # Delete rating into the database
             cursor.execute("DELETE FROM ratings WHERE userid=%s AND movieid=%s", (userid,movieid))
+            # update total_rating simultaneously
+            cursor.execute("""
+                UPDATE total_ratings
+                SET rating_count=rating_count-1, rating_sum=rating_sum-%s
+                WHERE movieid=%s
+            """, (original_rating, movieid))
+            # update avg_rating in 2nd step
+            cursor.execute("""
+                UPDATE total_ratings
+                SET avg_rating=rating_sum/rating_count
+                WHERE movieid=%s
+            """, (movieid,))
             conn.commit()
             flash("rating deleted successfully!", "success")
             return redirect("/my_ratings")
